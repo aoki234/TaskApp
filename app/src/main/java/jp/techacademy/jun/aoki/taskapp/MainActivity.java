@@ -8,8 +8,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import io.realm.Realm;
@@ -20,6 +23,10 @@ import io.realm.Sort;
 public class MainActivity extends AppCompatActivity {
 
     public final static String EXTRA_TASK = "jp.techacademy.jun.aoki.taskapp.TASK";
+
+    public Button mSearchButton;
+    public EditText mCategoryText;
+    RealmResults<Task> taskRealmResults;
 
     private Realm mRealm;
     private RealmChangeListener mRealmListener = new RealmChangeListener() {
@@ -38,6 +45,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
+
+        mCategoryText = (EditText) findViewById(R.id.category_search);
+        mSearchButton = (Button) findViewById(R.id.search_button);
+        mSearchButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Log.d("javatest","searched");
+                reloadListView();
+            }
+            });
+
+
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -118,12 +138,17 @@ public class MainActivity extends AppCompatActivity {
         // アプリ起動時に表示テスト用のタスクを作成する
        // addTaskForTest();
 
-        reloadListView();
+        //reloadListView();
 
     }
 
     private void reloadListView(){
-        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAll().sort("date", Sort.DESCENDING);
+        if (mCategoryText.getText().toString().isEmpty()) {
+            taskRealmResults = mRealm.where(Task.class).findAll().sort("date", Sort.DESCENDING);
+            Log.d("javatest","all realm");
+        }else{
+            taskRealmResults = mRealm.where(Task.class).equalTo("category", mCategoryText.getText().toString()).findAll().sort("date", Sort.DESCENDING);
+        }
         // 上記の結果を、TaskList としてセットする
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
         // TaskのListView用のアダプタに渡す
